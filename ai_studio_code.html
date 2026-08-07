@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Adventure in Western Australia!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --wa-blue: #008CBA;
+            --wa-gold: #FFD700;
+            --wa-sand: #F4A460;
+            --wa-leaf: #2E8B57;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        #game-container {
+            background: var(--white);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 8px solid var(--wa-gold);
+            text-align: center;
+            position: relative;
+        }
+
+        h1 { font-family: 'Fredoka+One', cursive; color: var(--wa-blue); margin-bottom: 10px; }
+        h2 { color: var(--wa-leaf); }
+
+        .hidden { display: none; }
+
+        .btn {
+            background-color: var(--wa-blue);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 0 #005f7a;
+        }
+
+        .btn:hover { transform: scale(1.05); background-color: #007ba3; }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+
+        .btn-option {
+            width: 100%;
+            text-align: left;
+            margin: 8px 0;
+            background-color: #f0f8ff;
+            color: #333;
+            border: 2px solid var(--wa-blue);
+            box-shadow: 0 4px 0 #bdd7ee;
+        }
+
+        .choice-card {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .avatar { font-size: 50px; display: block; margin-bottom: 5px; }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            font-weight: 600;
+        }
+
+        .correct { background-color: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .wrong { background-color: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+
+        #progress-bar {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        #progress-fill {
+            height: 10px;
+            background-color: var(--wa-leaf);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .summary-box {
+            text-align: left;
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px dashed var(--wa-gold);
+        }
+
+        .badge {
+            font-size: 80px;
+            display: block;
+            margin: 20px 0;
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- Step 1: Selection -->
+    <div id="setup-screen">
+        <h1>G'day, Explorer! 🐨</h1>
+        <p>Welcome to your <strong>Math Adventure in Western Australia!</strong> Let's get ready for some Decimal fun.</p>
+        
+        <h3>1. Pick your Buddy:</h3>
+        <div class="choice-card">
+            <button class="btn" onclick="setBuddy('Koala Ken', '🐨')">🐨 Koala Ken</button>
+            <button class="btn" onclick="setBuddy('Kangaroo Joey', '🦘')">🦘 Kangaroo Joey</button>
+            <button class="btn" onclick="setBuddy('Quokka Poppy', '🐹')">🐹 Quokka Poppy</button>
+        </div>
+    </div>
+
+    <!-- Step 2: Settings -->
+    <div id="settings-screen" class="hidden">
+        <h2 id="greet-buddy"></h2>
+        <h3>2. How many questions?</h3>
+        <button class="btn" onclick="setLength(3)">3 Questions (Short trip)</button>
+        <button class="btn" onclick="setLength(5)">5 Questions (Big hike!)</button>
+        
+        <h3>3. Where are we going?</h3>
+        <button class="btn" onclick="setTheme('Bakery')">🥧 Yummy Bakery</button>
+        <button class="btn" onclick="setTheme('Kings Park')">🌸 Kings Park</button>
+        <button class="btn" onclick="setTheme('Beach')">🏖️ Cottesloe Beach</button>
+    </div>
+
+    <!-- Step 3: Quiz -->
+    <div id="quiz-screen" class="hidden">
+        <div id="progress-bar"><div id="progress-fill"></div></div>
+        <div id="buddy-display" style="font-size: 40px;"></div>
+        <h2 id="location-name"></h2>
+        <p id="question-text" style="font-size: 1.2rem; font-weight: 600;"></p>
+        <div id="options-container"></div>
+        <div id="feedback-area" class="hidden feedback"></div>
+        <button id="next-btn" class="hidden btn">Next Question ➔</button>
+    </div>
+
+    <!-- Step 4: Summary -->
+    <div id="summary-screen" class="hidden">
+        <h1>Learning Champion Report! 🏆</h1>
+        <div class="badge">🏅</div>
+        <h2 id="final-score"></h2>
+        <div class="summary-box">
+            <h3>Key Takeaways:</h3>
+            <ul id="takeaways">
+                <li><strong>Place Value:</strong> Tenths are 1st after the dot, Hundredths are 2nd!</li>
+                <li><strong>Comparing:</strong> Always look at the big numbers on the left first.</li>
+                <li><strong>Money:</strong> To find "Change", do: <em>Money Paid - Cost</em>.</li>
+            </ul>
+        </div>
+        <button class="btn" onclick="location.reload()">Play Again! 🔄</button>
+    </div>
+</div>
+
+<script>
+    // Game Data & Logic
+    let buddyName = "";
+    let buddyEmoji = "";
+    let totalQuestions = 0;
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let theme = "";
+
+    const questionBank = [
+        {
+            type: "Write Numerals",
+            text: "At the shop, a cupcake costs 'Five and seventeen hundredths' dollars. How do we write that as a number?",
+            options: ["A) 5.17", "B) 51.7", "C) 5.017", "D) 0.517"],
+            correct: 0,
+            explain: "Spot on! 'Five' is the whole number, and 'seventeen hundredths' means 17 goes after the decimal point. 🧁"
+        },
+        {
+            type: "Place Value",
+            text: "Look at the number 8.457. What is the value of the digit 4?",
+            options: ["A) 4 units", "B) 4 tenths", "C) 4 hundredths", "D) 4 thousandths"],
+            correct: 1,
+            explain: "You got it! The first spot after the decimal point is always the **Tenths** place. 🔎"
+        },
+        {
+            type: "Ordering",
+            text: "We measured three wildflowers: 1.5cm, 1.25cm, and 1.7cm. Which list shows them from Tallest to Shortest (Descending)?",
+            options: ["A) 1.25, 1.5, 1.7", "B) 1.7, 1.25, 1.5", "C) 1.7, 1.5, 1.25", "D) 1.5, 1.7, 1.25"],
+            correct: 2,
+            explain: "Great work! 1.7 is the biggest, then 1.5 (which is like 1.50), and 1.25 is the smallest. 🌸"
+        },
+        {
+            type: "Calculation",
+            text: "You bought a lamington for $2.40 and a juice for $1.30. How much did you spend in total?",
+            options: ["A) $3.70", "B) $3.07", "C) $4.70", "D) $3.50"],
+            correct: 0,
+            explain: "Wizard math! 2.4 + 1.3 = 3.7. Adding decimals is just like adding whole numbers, just keep the dot in line! 🧮"
+        },
+        {
+            type: "Word Problem",
+            text: "You gave the baker $20.00 for a $15.50 meal. How much change should you get back?",
+            options: ["A) $5.50", "B) $4.50", "C) $5.00", "D) $10.00"],
+            correct: 1,
+            explain: "Brilliant! $20.00 minus $15.50 leaves $4.50. You're ready for the real shops! 💰"
+        }
+    ];
+
+    function setBuddy(name, emoji) {
+        buddyName = name;
+        buddyEmoji = emoji;
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('settings-screen').classList.remove('hidden');
+        document.getElementById('greet-buddy').innerText = `G'day, I'm ${buddyName}! Let's explore! ${buddyEmoji}`;
+    }
+
+    function setLength(num) { totalQuestions = num; checkReady(); }
+    function setTheme(t) { theme = t; checkReady(); }
+
+    function checkReady() {
+        if (totalQuestions > 0 && theme !== "") {
+            startQuiz();
+        }
+    }
+
+    function startQuiz() {
+        document.getElementById('settings-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        document.getElementById('location-name').innerText = `Location: ${theme}`;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = questionBank[currentQuestionIndex];
+        document.getElementById('buddy-display').innerText = buddyEmoji;
+        document.getElementById('question-text').innerText = q.text;
+        document.getElementById('progress-fill').style.width = `${(currentQuestionIndex / totalQuestions) * 100}%`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = "btn btn-option";
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index);
+            container.appendChild(btn);
+        });
+        
+        document.getElementById('feedback-area').classList.add('hidden');
+        document.getElementById('next-btn').classList.add('hidden');
+    }
+
+    function checkAnswer(choice) {
+        const q = questionBank[currentQuestionIndex];
+        const feedback = document.getElementById('feedback-area');
+        feedback.classList.remove('hidden');
+        
+        // Disable all options
+        const btns = document.getElementsByClassName('btn-option');
+        for (let b of btns) b.disabled = true;
+
+        if (choice === q.correct) {
+            score++;
+            feedback.className = "feedback correct";
+            feedback.innerHTML = `Star work! 🌟 ${q.explain}`;
+        } else {
+            feedback.className = "feedback wrong";
+            feedback.innerHTML = `Oops! Close, but let's take a look! 🔍 The answer is ${q.options[q.correct]}. ${q.explain}`;
+        }
+        
+        document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    document.getElementById('next-btn').onclick = () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < totalQuestions) {
+            showQuestion();
+        } else {
+            showSummary();
+        }
+    };
+
+    function showSummary() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('summary-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = `You got ${score} out of ${totalQuestions} correct! ${buddyName} is so proud of you!`;
+    }
+</script>
+
+</body>
+</html>
